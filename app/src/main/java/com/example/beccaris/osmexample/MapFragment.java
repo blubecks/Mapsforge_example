@@ -48,6 +48,7 @@ public class MapFragment extends Fragment {
     private MapView mapView;
     private TileRendererLayer tileRendererLayer;
     private TileCache tileCache;
+    private TappableMarker positionMarker;
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -69,20 +70,29 @@ public class MapFragment extends Fragment {
 
         mapView = new MapView(getActivity());
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,new LocationListener() {
+        LocationListener locationListener2 = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 Log.d(TAG,"onLocationChanged");
                 Log.d(TAG,location.getLongitude()+" "+location.getLatitude());
-                //mapView.getLayerManager().getLayers().
-                TappableMarker positionMarker = new TappableMarker(R.drawable.marker, new LatLong(location.getLatitude(), location.getLongitude()),getActivity());
+                Toast toast = Toast.makeText(getActivity(),"onLocationChanged",Toast.LENGTH_SHORT);
+                toast.show();
+                if (positionMarker==null)
+                {
+                   positionMarker = new TappableMarker(R.drawable.marker, new LatLong(location.getLatitude(),
+                           location.getLongitude()),getActivity());
+                }
+                else{
+                    mapView.getLayerManager().getLayers().remove(positionMarker);
+                    positionMarker =  new TappableMarker(R.drawable.marker, new LatLong(location.getLatitude(),
+                            location.getLongitude()),getActivity());
+                }
                 mapView.getLayerManager().getLayers().add(positionMarker);
-
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                Log.d(TAG,"onStatusChanged");
+                Log.d(TAG,"onStatusChanged from "+provider);
                 Toast toast = Toast.makeText(getActivity(),"onProviderEnabled",Toast.LENGTH_SHORT);
                 toast.show();
             }
@@ -96,12 +106,48 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onProviderDisabled(String provider) {
-                Log.d(TAG,"onProviderDisabled");
+                Log.d(TAG,"onProviderDisabled "+provider);
                 Toast toast = Toast.makeText(getActivity(),"onProviderDisabled",Toast.LENGTH_SHORT);
                 toast.show();
-            }
 
-        });
+            }
+        };
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener2);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener2);
+
+//        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,0,0,new LocationListener() {
+//            @Override
+//            public void onLocationChanged(Location location) {
+//                Log.d(TAG,"onLocationChanged");
+//                Log.d(TAG,location.getLongitude()+" "+location.getLatitude());
+//                mapView.invalidate();
+//                //mapView.getLayerManager().getLayers().
+//                TappableMarker positionMarker = new TappableMarker(R.drawable.marker, new LatLong(location.getLatitude(), location.getLongitude()),getActivity());
+//                mapView.getLayerManager().getLayers().add(positionMarker);
+//            }
+//
+//            @Override
+//            public void onStatusChanged(String provider, int status, Bundle extras) {
+//                Log.d(TAG,"onStatusChanged");
+//                Toast toast = Toast.makeText(getActivity(),"onProviderEnabled",Toast.LENGTH_SHORT);
+//                toast.show();
+//            }
+//
+//            @Override
+//            public void onProviderEnabled(String provider) {
+//                Log.d(TAG,"onProviderEnabled");
+//                Toast toast = Toast.makeText(getActivity(),"onProviderEnabled",Toast.LENGTH_SHORT);
+//                toast.show();
+//            }
+//
+//            @Override
+//            public void onProviderDisabled(String provider) {
+//                Log.d(TAG,"onProviderDisabled");
+//                Toast toast = Toast.makeText(getActivity(),"onProviderDisabled",Toast.LENGTH_SHORT);
+//                toast.show();
+//            }
+//
+//        });
 
     }
 
